@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulário de E-mail e Arquivo</title>
+</head>
+
+<body>
+        <h1>Enviar texto do E-mail e Arquivo</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" enctype="multipart/form-data">
+                <label>Como deseja enviar o e-mail?</label><br>
+                <input type="radio" name="input_type" value="text" id="input_text" checked>
+                <label for="input_text">Colar texto</label>
+                <input type="radio" name="input_type" value="file" id="input_file">
+                <label for="input_file">Enviar arquivo (.txt ou .pdf)</label>
+                <br><br>
+
+                <div id="text_area">
+                        <label for="email_text">Texto do e-mail:</label><br>
+                        <textarea name="email_text" id="email_text" rows="8" cols="50"></textarea>
+                </div>
+
+                <div id="file_area" style="display:none;">
+                        <label for="file">Arquivo (.txt ou .pdf):</label>
+                        <input type="file" name="file" id="file" accept=".txt,.pdf">
+                </div>
+                <br>
+                <button type="submit">Enviar</button>
+        </form>
+
+        {% if conteudo_email %}
+            <h2>Conteúdo extraído:</h2>
+            <pre>{{ conteudo_email }}</pre>
+        {% endif %}
+
+        <script>
+        document.querySelectorAll('input[name="input_type"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                        if (this.value === 'text') {
+                                document.getElementById('text_area').style.display = '';
+                                document.getElementById('file_area').style.display = 'none';
+                        } else {
+                                document.getElementById('text_area').style.display = 'none';
+                                document.getElementById('file_area').style.display = '';
+                        }
+                });
+        });
+        </script>
+</body>
+</html>
