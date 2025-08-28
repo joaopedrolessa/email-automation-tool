@@ -47,3 +47,6 @@ def home():
         else:
             flash('Não foi possível extrair o conteúdo do email.')
         return render_template('index.html', conteudo_email=conteudo_email)
+
+    # Para GET, apenas renderiza a página inicial
+    return render_template('index.html', conteudo_email=conteudo_email)
