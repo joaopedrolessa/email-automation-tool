@@ -1,3 +1,4 @@
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import io
 try:
@@ -7,8 +8,8 @@ except ImportError:
 from werkzeug.utils import secure_filename
 import os
 
-# Importa as funções de IA
-## Removido integração IA
+# Importa função de preprocessamento NLP
+from .utils import preprocess_text, classificar_email_hibrido, sugerir_resposta
 
 # Create a Blueprint for the app
 main = Blueprint('main', __name__)
@@ -22,6 +23,7 @@ def allowed_file(filename):
 @main.route('/', methods=['GET', 'POST'])
 def home():
     conteudo_email = None
+    conteudo_processado = None
     categoria = None
     resposta = None
     if request.method == 'POST':
@@ -41,12 +43,15 @@ def home():
                 flash('Envie um arquivo .txt ou .pdf válido.')
                 return redirect(request.url)
 
-        # Apenas exibe o conteúdo extraído
+        # Pré-processa o texto extraído
         if conteudo_email:
-            flash('Conteúdo do email extraído com sucesso!')
+            conteudo_processado = preprocess_text(conteudo_email)
+            categoria = classificar_email_hibrido(conteudo_email)
+            resposta = sugerir_resposta(categoria)
+            flash('Conteúdo do email extraído, pré-processado e classificado com sucesso!')
         else:
             flash('Não foi possível extrair o conteúdo do email.')
-        return render_template('index.html', conteudo_email=conteudo_email)
+        return render_template('index.html', conteudo_email=conteudo_email, conteudo_processado=conteudo_processado, categoria=categoria, resposta=resposta)
 
     # Para GET, apenas renderiza a página inicial
-    return render_template('index.html', conteudo_email=conteudo_email)
+    return render_template('index.html', conteudo_email=conteudo_email, conteudo_processado=None, categoria=None, resposta=None)

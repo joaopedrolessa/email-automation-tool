@@ -18,43 +18,55 @@
         {% endwith %}
 
         <form method="post" enctype="multipart/form-data">
-                <label>Como deseja enviar o e-mail?</label><br>
-                <input type="radio" name="input_type" value="text" id="input_text" checked>
-                <label for="input_text">Colar texto</label>
-                <input type="radio" name="input_type" value="file" id="input_file">
+                <label><strong>Como deseja enviar o e-mail?</strong></label><br>
+                <input type="radio" name="input_type" value="file" id="input_file" checked>
                 <label for="input_file">Enviar arquivo (.txt ou .pdf)</label>
+                <input type="radio" name="input_type" value="text" id="input_text">
+                <label for="input_text">Colar texto manualmente</label>
                 <br><br>
 
-                <div id="text_area">
-                        <label for="email_text">Texto do e-mail:</label><br>
-                        <textarea name="email_text" id="email_text" rows="8" cols="50"></textarea>
+                <div id="file_area">
+                        <label for="file"><strong>Selecione o arquivo (.txt ou .pdf):</strong></label><br>
+                        <input type="file" name="file" id="file" accept=".txt,.pdf">
+                        <small>Escolha um arquivo de email para análise automática.</small>
                 </div>
 
-                <div id="file_area" style="display:none;">
-                        <label for="file">Arquivo (.txt ou .pdf):</label>
-                        <input type="file" name="file" id="file" accept=".txt,.pdf">
+                <div id="text_area" style="display:none;">
+                        <label for="email_text"><strong>Digite ou cole o texto do e-mail:</strong></label><br>
+                        <textarea name="email_text" id="email_text" rows="8" cols="50" placeholder="Cole aqui o texto do email..."></textarea>
+                        <small>Use esta opção se não tiver o arquivo.</small>
                 </div>
                 <br>
-                <button type="submit">Enviar</button>
+                <button type="submit"><strong>Analisar Email</strong></button>
         </form>
 
-        {% if conteudo_email %}
-            <h2>Conteúdo extraído:</h2>
-            <pre>{{ conteudo_email }}</pre>
-        {% endif %}
+                {% if categoria %}
+                        <h2>Classificação do Email:</h2>
+                        <pre>{{ categoria }}</pre>
+                {% endif %}
+                {% if resposta %}
+                        <h2>Resposta Sugerida:</h2>
+                        <pre>{{ resposta }}</pre>
+                {% endif %}
 
-        <script>
-        document.querySelectorAll('input[name="input_type"]').forEach(function(el) {
-                el.addEventListener('change', function() {
-                        if (this.value === 'text') {
-                                document.getElementById('text_area').style.display = '';
-                                document.getElementById('file_area').style.display = 'none';
-                        } else {
-                                document.getElementById('text_area').style.display = 'none';
-                                document.getElementById('file_area').style.display = '';
-                        }
+                <script>
+                document.querySelectorAll('input[name="input_type"]').forEach(function(el) {
+                        el.addEventListener('change', function() {
+                                if (this.value === 'text') {
+                                        document.getElementById('text_area').style.display = '';
+                                        document.getElementById('file_area').style.display = 'none';
+                                } else {
+                                        document.getElementById('text_area').style.display = 'none';
+                                        document.getElementById('file_area').style.display = '';
+                                }
+                        });
                 });
-        });
-        </script>
+                // Garante que a opção padrão seja o envio de arquivo
+                window.onload = function() {
+                        document.getElementById('input_file').checked = true;
+                        document.getElementById('file_area').style.display = '';
+                        document.getElementById('text_area').style.display = 'none';
+                };
+                </script>
 </body>
 </html>
