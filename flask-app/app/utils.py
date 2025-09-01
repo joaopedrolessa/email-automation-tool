@@ -1,67 +1,89 @@
-import openai
-from dotenv import load_dotenv
-import os
+# Classificação por IA (zero-shot) — usamos apenas modelos gratuitos locais via transformers
 
-# Carrega variáveis do .env
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-def classificar_email_simples(texto):
-    produtivo_keywords = [
-        "suporte", "problema", "erro", "dúvida", "atualização", "caso", "solicitação", "ajuda", "urgente", "pendente",
-        "preciso de ajuda", "favor verificar", "poderia analisar", "necessito de resposta", "solicito informação",
-        "reunião", "agendar", "documentação", "relatório", "atualizar cadastro", "acompanhamento",
-        "responder", "retorno", "pendência", "ação necessária", "solicito providências", "encaminhar para setor"
-    ]
-    improdutivo_keywords = [
-        "agradeço", "agradecemos", "obrigado", "obrigada",
-        "parabéns", "felicidades", "feliz aniversário", "bom trabalho",
-        "tenha um ótimo dia", "desejo sucesso", "boa sorte",
-        "apenas para informar", "sem necessidade de resposta", "mensagem automática",
-        "cumprimentos", "saudações", "atenciosamente"
-    ]
-    texto_lower = texto.lower()
-    for palavra in produtivo_keywords:
-        if palavra in texto_lower:
-            return "Produtivo"
-    for palavra in improdutivo_keywords:
-        if palavra in texto_lower:
-            return "Improdutivo"
-    return None  # Não classificado
-
-def classificar_email_ia(texto):
-    prompt = f"Classifique o seguinte email como Produtivo ou Improdutivo:\n\n{texto}\n\nCategoria:"
+def classificar_email_transformers(texto):
+    """
+    Classifica email como Produtivo ou Improdutivo usando zero-shot (transformers).
+    Retorna 1 para Produtivo e 0 para Improdutivo (sempre retorna um inteiro binário).
+    """
     try:
-        resposta = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt,
-            max_tokens=10
-        )
-        categoria = resposta.choices[0].text.strip()
-        if "produtivo" in categoria.lower():
-            return "Produtivo"
-        elif "improdutivo" in categoria.lower():
-            return "Improdutivo"
-        else:
-            return "Indefinido"
-    except Exception as e:
-        return f"Erro IA: {e}"
+        from transformers import pipeline
+    except ImportError:
+        return "[Transformers] Erro: instale as dependências com 'pip install transformers torch'"
+    # labels mais curtas e diretas ajudam o modelo a decidir melhor
+    labels = [
+        "Produtivo: Requer ação (suporte/atualização/dúvida)",
+        "Improdutivo: Mensagem social (felicitações/agradecimentos)"
+    ]
+    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    result = classifier(texto, candidate_labels=labels, hypothesis_template="Este email é: {}.")
+    # Espera-se result com 'labels' e 'scores'
+    if not result or 'labels' not in result or 'scores' not in result:
+        # falha no pipeline -> assumir improdutivo (0)
+        return 0
+    top_label = result['labels'][0]
+    top_score = float(result['scores'][0])
+    # limiar mínimo de confiança para aceitar a classificação do modelo
+    CONFIDENCE_THRESHOLD = 0.65
+    if top_score >= CONFIDENCE_THRESHOLD:
+        return 1 if top_label.startswith("Produtivo") else 0
+    # baixa confiança: usar fallback para o label de maior score (ainda retorna binário)
+    return 1 if top_label.startswith("Produtivo") else 0
+
+
+def sugerir_resposta_produtivo(email):
+    """
+    Analisa o email produtivo e sugere resposta específica para:
+    - Solicitação de suporte técnico
+    - Atualização sobre caso em aberto
+    - Dúvida sobre o sistema
+    """
+    try:
+        from transformers import pipeline
+    except ImportError:
+        return "[Transformers] Erro: instale as dependências com 'pip install transformers torch'"
+    # labels simples para subtipo; vamos checar score e usar fallback quando baixa confiança
+    labels = [
+        "Solicitação de suporte técnico",
+        "Atualização sobre caso em aberto",
+        "Dúvida sobre o sistema"
+    ]
+    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    result = classifier(email, candidate_labels=labels, hypothesis_template="Este email é uma {}.")
+    if not result or 'labels' not in result or 'scores' not in result:
+        return "Olá! Recebemos sua solicitação e em breve nossa equipe irá analisar e responder conforme o assunto."
+    top_label = result['labels'][0]
+    top_score = float(result['scores'][0])
+    # limiar mais baixo para subtipo
+    SUBTYPE_THRESHOLD = 0.55
+    if top_score < SUBTYPE_THRESHOLD:
+        # baixa confiança para subtipo -> resposta produtiva genérica
+        return "Olá! Recebemos sua solicitação e em breve nossa equipe irá analisar e responder conforme o assunto."
+    if top_label == "Solicitação de suporte técnico":
+        return "Olá! Recebemos sua solicitação de suporte técnico. Nossa equipe está analisando o caso e retornaremos em breve com orientações ou solução."
+    if top_label == "Atualização sobre caso em aberto":
+        return "Olá! Informamos que estamos acompanhando o caso em aberto e enviaremos atualizações assim que houver novidades. Se precisar de mais informações, estamos à disposição."
+    if top_label == "Dúvida sobre o sistema":
+        return "Olá! Agradecemos sua dúvida sobre o sistema. Nossa equipe irá responder com as informações solicitadas o mais breve possível. Se desejar, consulte também nosso manual ou FAQ."
+    return "Olá! Recebemos sua solicitação e em breve nossa equipe irá analisar e responder conforme o assunto."
+
 
 def classificar_email_hibrido(texto):
-    # Primeiro tenta classificar pelas regras
-    categoria = classificar_email_simples(texto)
-    if categoria:
-        return categoria
-    # Se não classificar, usa IA
-    return classificar_email_ia(texto)
+    """
+    Classificação usando apenas o modelo zero-shot (transformers).
+    """
+    return classificar_email_transformers(texto)
 
-def sugerir_resposta(categoria):
+def sugerir_resposta(categoria, email=None):
+    """
+    Gera resposta sugerida. Se `categoria` for Produtivo e `email` fornecido,
+    identifica subtipo (suporte / atualização / dúvida) usando zero-shot e retorna mensagem específica.
+    """
+    # Retorna UMA resposta fixa para cada categoria
     if categoria == "Produtivo":
-        return "Obrigado pelo contato! Sua solicitação será analisada e retornaremos em breve."
-    elif categoria == "Improdutivo":
-        return "Agradecemos sua mensagem!"
-    else:
-        return "Não foi possível sugerir uma resposta automática."
+        return "Olá! Recebemos sua solicitação. Nossa equipe irá analisar e retornará em breve."
+    if categoria == "Improdutivo":
+        return "Agradecemos sua mensagem."
+    return "Não foi possível sugerir uma resposta automática."
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer

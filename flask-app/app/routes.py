@@ -61,8 +61,13 @@ def home():
         # Pré-processamento e classificação
         if conteudo_email:
             conteudo_processado = preprocess_text(conteudo_email)
-            categoria = classificar_email_hibrido(conteudo_email)
-            resposta = sugerir_resposta(categoria)
+            categoria_raw = classificar_email_hibrido(conteudo_email)
+            # classificar_email_hibrido agora retorna 1 para Produtivo e 0 para Improdutivo
+            categoria = "Produtivo" if categoria_raw == 1 else "Improdutivo"
+            if categoria == "Produtivo":
+                resposta = sugerir_resposta(categoria, conteudo_email)
+            else:
+                resposta = sugerir_resposta(categoria)
             # Feedback positivo ao usuário
             flash('Conteúdo do email extraído, pré-processado e classificado com sucesso!')
         else:

@@ -1,107 +1,121 @@
-# AutoU - Classificação e Resposta Automática de Emails
+````markdown
+# 📧 AutoU - Classificação e Resposta Automática de Emails  
 
-## Descrição do Projeto
+AutoU é uma aplicação **Flask** que automatiza a leitura, classificação e resposta de e-mails corporativos em **português**.  
 
-Aplicação web para automatizar a leitura, classificação e resposta de emails recebidos por uma empresa do setor financeiro, utilizando inteligência artificial.
-
-## Funcionalidades
-
-- Upload de emails em formato `.txt`, `.pdf` ou inserção direta de texto.
-- Classificação automática dos emails em:
-  - **Produtivo:** Requer ação ou resposta específica.
-  - **Improdutivo:** Não requer ação imediata.
-- Sugestão de resposta automática baseada na classificação.
-- Interface web intuitiva para upload e exibição dos resultados.
-
-## Requisitos Técnicos
-
-### Interface Web
-
-- Formulário para upload de arquivos ou inserção de texto.
-- Botão para envio do email para processamento.
-- Exibição da categoria atribuída e resposta sugerida.
-
-### Backend Python
-
-- Leitura e pré-processamento do conteúdo dos emails (NLP: remoção de stop words, stemming/lemmatização).
-- Classificação do email usando API de IA (ex: OpenAI, Hugging Face, etc.).
-- Geração de resposta automática adequada à categoria.
-- Integração entre backend e interface web.
-
-### Hospedagem
-
-- Deploy da aplicação em nuvem (Heroku, Vercel, AWS, GCP, etc.).
-- Disponibilização de link público funcional.
-
-## Entregáveis
-
-- Código fonte no GitHub (scripts Python, HTML, requirements.txt, dados de exemplo, README).
-- Vídeo demonstrativo (3-5 minutos) apresentando a solução, interface, funcionamento e explicação técnica.
-- Link da aplicação hospedada na nuvem.
-
-## Critérios de Avaliação
-
-- Funcionalidade e experiência do usuário.
-- Qualidade técnica e organização do código.
-- Uso eficaz de IA para classificação e resposta.
-- Hospedagem funcional e acessível.
-- Interface web intuitiva e visualmente agradável.
-- Autonomia e resolução de problemas.
-- Clareza na demonstração e comunicação.
-
-## Instruções de Entrega
-
-- Enviar links do repositório, vídeo e aplicação publicada via formulário oficial.
-- Certificar-se de que todos os links estão públicos e acessíveis.
+O sistema classifica mensagens em **Produtivo** ou **Improdutivo** e sugere automaticamente uma resposta padrão para cada categoria.  
+Toda a classificação é feita **localmente** com modelos *Transformers* (*zero-shot classification*), sem depender de APIs pagas ou serviços externos.  
 
 ---
 
-## Como Executar Localmente
+## 🚀 Funcionalidades principais
+- Upload de e-mails em **.txt** ou **.pdf** diretamente na interface web.
+- Classificação automática em **Produtivo** (útil para o negócio) ou **Improdutivo** (spam/irrelevante).
+- Sugestão imediata de resposta padronizada por categoria.
+- Processamento **local e offline** (não requer API paga).
+- Código simples e modular para fácil personalização.  
 
-1. Clone o repositório:
-   ```
+---
+
+## 🛠️ Stack Tecnológica
+- **Python 3.10+**
+- **Flask** – backend e interface web
+- **Hugging Face Transformers** – modelo `facebook/bart-large-mnli` para zero-shot classification
+- **PyPDF2** – leitura e extração de texto de PDFs
+- **NLTK** – pré-processamento opcional (stopwords, lematização)
+
+> As dependências estão listadas em `requirements.txt`.
+
+---
+
+## 🔄 Como funciona
+1. **Entrada:** usuário envia o texto do e-mail ou faz upload de um arquivo `.txt` ou `.pdf` via interface (`templates/index.html`).
+2. **Extração:** PDFs são lidos com `PyPDF2`; textos passam por limpeza opcional em `preprocess_text`.
+3. **Classificação:**  
+   - A função `classificar_email_hibrido` chama o pipeline *zero-shot classification* do modelo `facebook/bart-large-mnli`.  
+   - São usados **labels em português**: `Produtivo` e `Improdutivo`.  
+   - O modelo retorna a categoria com **maior score de confiança**.
+4. **Resposta:** `sugerir_resposta(categoria, email)` devolve uma mensagem **fixa e padrão** para cada categoria.  
+   - Exemplo: Produtivo → “Sua solicitação foi recebida e será analisada.”  
+5. **Resultado:** o usuário visualiza no navegador a classificação e a resposta sugerida.
+
+---
+
+## 💻 Como rodar localmente
+1. Clone o repositório e entre na pasta:  
+   ```bash
    git clone <url-do-repositorio>
    cd email-automation-tool/flask-app
-   ```
+````
+
 2. Crie e ative o ambiente virtual:
-   ```
+
+   ```bash
    python -m venv venv
-   .\venv\Scripts\activate
+   .\venv\Scripts\activate   # Windows
+   source venv/bin/activate # Linux/Mac
    ```
 3. Instale as dependências:
-   ```
+
+   ```bash
    pip install -r requirements.txt
+   pip install transformers torch  # caso não estejam no requirements
    ```
 4. Execute a aplicação:
-   ```
+
+   ```bash
    python run.py
    ```
-5. Acesse `http://localhost:5000` no navegador.
-
-## Observações
-
-- Para rodar o processamento de IA, configure as chaves de API necessárias no arquivo `.env` ou nas variáveis de ambiente.
-- Para deploy, siga as instruções da plataforma escolhida (Heroku, Vercel, etc.).
-- Inclua exemplos de emails para teste na pasta `data/` se necessário.
+5. Acesse no navegador:
+   👉 `http://localhost:5000`
 
 ---
 
-## Checklist de Implementação
+## 🏗️ Estrutura do projeto
 
-- [x] Formulário web permite upload de `.txt`, `.pdf` ou inserção de texto
-- [ ] Backend lê e processa o conteúdo do email
-- [ ] Pré-processamento de texto (remoção de stop words, stemming/lemmatização)
-- [ ] Classificação automática (Produtivo/Improdutivo) usando IA
-- [ ] Geração de resposta automática baseada na classificação
-- [ ] Exibição dos resultados na interface web
-- [ ] Deploy da aplicação em nuvem (Heroku, Vercel, AWS, etc.)
-- [ ] Link público funcional da aplicação
-- [ ] Vídeo demonstrativo gravado e publicado
-- [x] Repositório organizado e documentado
-- [x] README com instruções claras de execução local e deploy
+* **`app/routes.py`** → recebe uploads/inputs, extrai conteúdo e chama a classificação.
+* **`app/utils.py`** → funções centrais:
+
+  * `preprocess_text`: limpeza opcional do texto.
+  * `classificar_email_transformers`: pipeline de classificação.
+  * `sugerir_resposta`: gera resposta fixa por categoria.
 
 ---
 
-**Capriche na interface e na experiência do usuário!**
+## ⚖️ Decisões de Design
 
-Dúvidas? Consulte o escopo acima ou entre em contato pelo canal oficial do processo seletivo.
+* **Zero-shot Transformers**: elimina necessidade de dataset próprio e treinos pesados.
+* **Respostas fixas**: solução simples para o escopo inicial (um template por categoria).
+* **Execução local**: evita custos com APIs externas e garante maior controle do fluxo.
+
+---
+
+## 🐞 Limitações conhecidas
+
+* Recursos gratuitos limitados (ex.: servidores AWS free-tier).
+* O modelo em inglês (`bart-large-mnli`) pode perder precisão em português.
+* Respostas são **muito genéricas** (uma só por categoria).
+
+---
+
+## 🎯 Como melhorar a precisão
+
+* Refinar **labels** em português (ex.: “solicitação de suporte”, “mensagem irrelevante”).
+* Definir **threshold de confiança** antes de classificar.
+* Combinar regras simples (regex, palavras-chave) junto com o modelo.
+* Fine-tuning de um modelo em **português** com dataset pequeno e específico.
+
+---
+
+## 🔮 Próximos passos
+
+* Substituir respostas fixas por **templates dinâmicos** ou **modelos generativos**.
+* Criar **dataset em português** e treinar um classificador dedicado.
+* Adicionar suporte a múltiplas categorias além de Produtivo/Improdutivo.
+* Deploy em **Docker** para facilitar distribuição.
+
+---
+
+## 📜 Licença
+
+MIT — veja o arquivo `LICENSE`.

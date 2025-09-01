@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Formulário de E-mail e Arquivo</title>
-<head>
         <meta charset="UTF-8">
         <title>Formulário de E-mail e Arquivo</title>
         <style>
@@ -65,15 +62,21 @@
                         margin: 16px auto;
                         color: #2c3e50;
                 }
-                pre {
-                        background: #f4f4f4;
-                        border-radius: 4px;
-                        padding: 12px;
+                .result-box {
+                        background: #eaf2fb;
+                        border-radius: 6px;
+                        padding: 16px 24px;
+                        margin: 24px auto;
                         max-width: 480px;
-                        margin: 16px auto;
-                        font-size: 1em;
+                        box-shadow: 0 1px 4px rgba(44,62,80,0.06);
+                        font-size: 1.1em;
+                        color: #2c3e50;
+                        text-align: center;
+                }
+                .result-title {
+                        font-weight: bold;
+                        margin-bottom: 8px;
                         color: #34495e;
-                        overflow-x: auto;
                 }
         </style>
 </head>
@@ -111,14 +114,18 @@
                 <button type="submit"><strong>Analisar Email</strong></button>
         </form>
 
-                {% if categoria %}
-                        <h2>Classificação do Email:</h2>
-                        <pre>{{ categoria }}</pre>
-                {% endif %}
-                {% if resposta %}
-                        <h2>Resposta Sugerida:</h2>
-                        <pre>{{ resposta }}</pre>
-                {% endif %}
+                                {% if categoria %}
+                                        <div class="result-box">
+                                                <div class="result-title">Classificação do Email:</div>
+                                                <div>{{ categoria }}</div>
+                                        </div>
+                                {% endif %}
+                                {% if resposta %}
+                                        <div class="result-box">
+                                                <div class="result-title">Resposta Sugerida:</div>
+                                                <div>{{ resposta }}</div>
+                                        </div>
+                                {% endif %}
 
                 <script>
                 document.querySelectorAll('input[name="input_type"]').forEach(function(el) {
