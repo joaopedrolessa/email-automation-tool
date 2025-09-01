@@ -1,4 +1,3 @@
-````markdown
 # 📧 AutoU - Classificação e Resposta Automática de Emails  
 
 AutoU é uma aplicação **Flask** que automatiza a leitura, classificação e resposta de e-mails corporativos em **português**.  
