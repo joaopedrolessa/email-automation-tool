@@ -1,120 +1,116 @@
-# 📧 AutoU - Classificação e Resposta Automática de Emails  
+# 🤖 AutoU | AI Email Automation & Classification
 
-AutoU é uma aplicação **Flask** que automatiza a leitura, classificação e resposta de e-mails corporativos em **português**.  
+<div align="left">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS_EC2-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" />
+  <img src="https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" />
+</div>
 
-O sistema classifica mensagens em **Produtivo** ou **Improdutivo** e sugere automaticamente uma resposta padrão para cada categoria.  
-Toda a classificação é feita **localmente** com modelos *Transformers* (*zero-shot classification*), sem depender de APIs pagas ou serviços externos.  
+### 📖 Project Overview
+**AutoU** is an intelligent automation tool designed to optimize corporate workflows. It uses **Natural Language Processing (NLP)** to read, classify, and draft responses for incoming emails automatically.
 
----
-
-## 🚀 Funcionalidades principais
-- Upload de e-mails em **.txt** ou **.pdf** diretamente na interface web.
-- Classificação automática em **Produtivo** (útil para o negócio) ou **Improdutivo** (spam/irrelevante).
-- Sugestão imediata de resposta padronizada por categoria.
-- Processamento **local e offline** (não requer API paga).
-- Código simples e modular para fácil personalização.  
+Unlike simple rule-based automations, this project leverages **Zero-Shot Classification (Transformers)** to understand context without extensive model training, classifying emails as **Productive** or **Unproductive** with high accuracy.
 
 ---
 
-## 🛠️ Stack Tecnológica
-- **Python 3.10+**
-- **Flask** – backend e interface web
-- **Hugging Face Transformers** – modelo `facebook/bart-large-mnli` para zero-shot classification
-- **PyPDF2** – leitura e extração de texto de PDFs
-- **NLTK** – pré-processamento opcional (stopwords, lematização)
+### ⚙️ Architecture & Tech Stack
 
-> As dependências estão listadas em `requirements.txt`.
+The application follows a modular architecture deployed on **Linux environments**:
 
----
-
-## 🔄 Como funciona
-1. **Entrada:** usuário envia o texto do e-mail ou faz upload de um arquivo `.txt` ou `.pdf` via interface (`templates/index.html`).
-2. **Extração:** PDFs são lidos com `PyPDF2`; textos passam por limpeza opcional em `preprocess_text`.
-3. **Classificação:**  
-   - A função `classificar_email_hibrido` chama o pipeline *zero-shot classification* do modelo `facebook/bart-large-mnli`.  
-   - São usados **labels em português**: `Produtivo` e `Improdutivo`.  
-   - O modelo retorna a categoria com **maior score de confiança**.
-4. **Resposta:** `sugerir_resposta(categoria, email)` devolve uma mensagem **fixa e padrão** para cada categoria.  
-   - Exemplo: Produtivo → “Sua solicitação foi recebida e será analisada.”  
-5. **Resultado:** o usuário visualiza no navegador a classificação e a resposta sugerida.
+* **Backend:** Python 3.10+ & Flask (Web Interface & API).
+* **AI Engine:** Hugging Face Transformers (`facebook/bart-large-mnli`) for local Zero-Shot Classification.
+* **Data Processing:** `PyPDF2` for PDF extraction and `NLTK` for text preprocessing.
+* **Infrastructure:** Designed for deployment on **AWS EC2** (Ubuntu Server).
 
 ---
 
-## 💻 Como rodar localmente
-1. Clone o repositório e entre na pasta:  
+### ☁️ Cloud & Deployment
+This project was engineered to run in a cloud environment, demonstrating **DevOps** and **Infrastructure** skills:
+
+* **AWS EC2:** Hosted on a Linux instance to simulate a real-world production server.
+* **Linux Automation:** Configured using SSH and Bash scripts for environment setup.
+* **Offline Capability:** The AI model runs locally on the server, removing dependencies on expensive external APIs (like OpenAI), ensuring data privacy and cost reduction.
+
+---
+
+### 🔄 How It Works (Pipeline)
+
+1.  **Input:** User uploads `.txt` or `.pdf` files via the Web UI.
+2.  **Extraction & Cleaning:** The system extracts raw text and removes noise (stopwords/formatting).
+3.  **AI Classification:**
+    * The content is fed into the **BART Transformer Model**.
+    * The model assigns a probability score to labels: `Produtivo` (Business Value) vs `Improdutivo` (Spam/Noise).
+4.  **Action:** Based on the highest confidence score, the system generates a standardized response template ready to be sent.
+
+---
+
+### 💻 How to Run Locally
+
+1. **Clone the repository:**
    ```bash
-   git clone <url-do-repositorio>
-   cd email-automation-tool/flask-app
+   git clone [https://github.com/joaopedrolessa/AutoU.git](https://github.com/joaopedrolessa/AutoU.git)
+   cd AutoU
 ````
 
-2. Crie e ative o ambiente virtual:
+2.  **Set up the Virtual Environment:**
 
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate   # Windows
-   source venv/bin/activate # Linux/Mac
-   ```
-3. Instale as dependências:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Linux/Mac
+    # .\venv\Scripts\activate # Windows
+    ```
 
-   ```bash
-   pip install -r requirements.txt
-   pip install transformers torch  # caso não estejam no requirements
-   ```
-4. Execute a aplicação:
+3.  **Install Dependencies:**
 
-   ```bash
-   python run.py
-   ```
-5. Acesse no navegador:
-   👉 `http://localhost:5000`
+    ```bash
+    pip install -r requirements.txt
+    # Note: This will download the Transformer model (approx. 1.5GB)
+    ```
 
----
+4.  **Run the Flask App:**
 
-## 🏗️ Estrutura do projeto
+    ```bash
+    python run.py
+    ```
 
-* **`app/routes.py`** → recebe uploads/inputs, extrai conteúdo e chama a classificação.
-* **`app/utils.py`** → funções centrais:
+    Access at: `http://localhost:5000`
 
-  * `preprocess_text`: limpeza opcional do texto.
-  * `classificar_email_transformers`: pipeline de classificação.
-  * `sugerir_resposta`: gera resposta fixa por categoria.
+-----
 
----
+### 🚧 Future Improvements
 
-## ⚖️ Decisões de Design
+  * Implement **Docker** containerization for easier deployment.
+  * Fine-tune the model specifically for Portuguese business vocabulary.
+  * Integrate directly with Gmail/Outlook APIs for real-time fetching.
 
-* **Zero-shot Transformers**: elimina necessidade de dataset próprio e treinos pesados.
-* **Respostas fixas**: solução simples para o escopo inicial (um template por categoria).
-* **Execução local**: evita custos com APIs externas e garante maior controle do fluxo.
+-----
 
----
+### 👨‍💻 Author
 
-## 🐞 Limitações conhecidas
+**João Pedro (Jaypi)**
 
-* Recursos gratuitos limitados (ex.: servidores AWS free-tier).
-* O modelo em inglês (`bart-large-mnli`) pode perder precisão em português.
-* Respostas são **muito genéricas** (uma só por categoria).
+  * *Backend Developer | Python Automation | AWS Enthusiast*
+  * [LinkedIn Profile](https://www.linkedin.com/in/joaopedrolessa/)
+
+<!-- end list -->
+
+```
 
 ---
 
-## 🎯 Como melhorar a precisão
+### 🏁 CHECKLIST FINAL DO GITHUB (Faça isso agora):
 
-* Refinar **labels** em português (ex.: “solicitação de suporte”, “mensagem irrelevante”).
-* Definir **threshold de confiança** antes de classificar.
-* Combinar regras simples (regex, palavras-chave) junto com o modelo.
-* Fine-tuning de um modelo em **português** com dataset pequeno e específico.
+1.  **Atualize esse README** do projeto `AutoU`.
+2.  **Vá no seu Perfil Principal** (Overview).
+3.  Clique em "Customize your pins".
+4.  **A Ordem Perfeita dos Pins (Top 4):**
+    1.  `AutoU` (O projeto de IA + AWS - Mostra modernidade).
+    2.  `CalculadoraMedia` (O projeto Java - Mostra base acadêmica e MVC).
+    3.  `stg-catalog-challenge` (Seu Fullstack mais complexo).
+    4.  `node-ts-webapi...` (Backend puro).
 
----
+**Assim que você terminar esses 4 passos, seu GitHub virou uma máquina de vendas.**
 
-## 🔮 Próximos passos
-
-* Substituir respostas fixas por **templates dinâmicos** ou **modelos generativos**.
-* Criar **dataset em português** e treinar um classificador dedicado.
-* Adicionar suporte a múltiplas categorias além de Produtivo/Improdutivo.
-* Deploy em **Docker** para facilitar distribuição.
-
----
-
-## 📜 Licença
-
-MIT — veja o arquivo `LICENSE`.
+Me avise com um "OK" quando terminar. Aí, pegaremos aquele texto que criei para o seu **LinkedIn** (na mensagem anterior) e vamos garantir que ele esteja lá certinho. O GitHub já vencemos! 🚀
+```
